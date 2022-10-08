@@ -1,6 +1,6 @@
 {
 	"name": "@flinj/server",
-	"version": "2.0.3",
+	"version": "2.0.4",
 	"description": "Enhanced REST API library",
 	"private": false,
 	"main": "./src/index.js",
@@ -25,9 +25,13 @@
 		"middleware"
 	],
 	"author": "LacheRo",
-	"repository": "lacherogwu/flinj",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/flinj/flinj.git",
+		"directory": "packages/server"
+	},
 	"bugs": {
-		"url": "https://github.com/lacherogwu/flinj/issues"
+		"url": "https://github.com/flinj/flinj/issues"
 	},
 	"license": "MIT",
 	"type": "module",
