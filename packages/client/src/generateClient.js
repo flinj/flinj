@@ -61,6 +61,7 @@ function generateControllerFunctionString(namespace, functionName) {
 		return output;
 	}
 
+	// TODO: add the correct type for response and for config
 	return `${functionName}` + `(${generateArgs().join(',')})` + generateBody();
 }
 
