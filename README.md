@@ -9,8 +9,8 @@ The fasest way to build REST API
 
 ## Server
 
-[@flinj/server](https://www.npmjs.com/package/@flinj/server)
+[@flinj/server](https://github.com/flinj/flinj/tree/main/packages/server)
 
 ## Client
 
-[@flinj/client](https://www.npmjs.com/package/@flinj/client)
+[@flinj/client](https://github.com/flinj/flinj/tree/main/packages/client)
