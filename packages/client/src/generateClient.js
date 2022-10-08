@@ -65,9 +65,11 @@ function generateControllerFunctionString(namespace, functionName) {
 }
 
 function generateClientFile(controllersStructure) {
-	let file = `import axios from 'axios';`;
-	file += 'export function createClient(options){';
-	file += 'const instance = axios.create(options);';
+	let file = `import axios from 'axios';\n`;
+	file += `/** @param {import('axios').CreateAxiosDefaults} config */\n`;
+	file += 'export function createClient(config){';
+	file += 'const instance = axios.create(config);';
+	file += 'instance.interceptors.response.use(({ data }) => data);';
 	file += 'return {';
 
 	for (const namespace in controllersStructure) {
@@ -92,9 +94,9 @@ async function generate(backendControllersDir) {
 	if (!backendControllersDir) {
 		throw new Error("you must provide the backend controllers dir, try to run 'npx flinj ../relative/path/to/backend/controllers'");
 	}
-	const distFolder = path.resolve(rootDir, '../dist');
-	await removeDir(distFolder);
-	await createFolder(distFolder);
+	const hiddenFolder = path.resolve(process.cwd(), './.flinj');
+	await removeDir(hiddenFolder);
+	await createFolder(hiddenFolder);
 
 	const controllersDir = path.resolve(process.cwd(), backendControllersDir);
 	const controllerFileList = await getFileList(`${controllersDir}/*.js`);
@@ -103,7 +105,7 @@ async function generate(backendControllersDir) {
 	const controllersStructure = await generateControllersFileStructure(controllerFileList);
 	const clientFile = generateClientFile(controllersStructure);
 
-	await fs.writeFile(distFolder + '/client.js', clientFile || '');
+	await fs.writeFile(hiddenFolder + '/client.js', clientFile);
 }
 
 generate(process.argv[2]);
