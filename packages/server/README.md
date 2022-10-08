@@ -22,7 +22,7 @@ import { createApp } from '@flinj/server';
 const app = await createApp({
 	controllersDir: '/path/to/controllers',
 	middlewaresDir: '/path/to/middlewares',
-	debug: true, // to see which routes was registered
+	debug: true, // to see which routes were registered
 });
 
 // app.addMiddleware(morgan('tiny'));
