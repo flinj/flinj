@@ -1,7 +1,6 @@
-import { createFolder, generateControllersFileStructure, isFolderExists } from '@flinj/utils';
+import { createFolder, generateControllersFileStructure, isFolderExists, getFileList } from '@flinj/utils';
 import { join } from 'path';
 import express from 'express';
-import fastGlob from 'fast-glob';
 import fs from 'fs/promises';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
@@ -75,8 +74,8 @@ async function resolveFiles(...paths) {
 	);
 }
 
-async function getFileList(...paths) {
-	return Promise.all(paths.map(path => fastGlob(path + '/*.js')));
+async function getAllFileList(...paths) {
+	return Promise.all(paths.map(path => getFileList(path + '/*.js')));
 }
 
 function createMiddlewaresMap(middlewares) {
@@ -190,7 +189,7 @@ export async function createApp(
 	[controllersDir, middlewaresDir] = getPath(controllersDir, middlewaresDir);
 
 	// TODO: support multiple folder nesting
-	const [controllerFileList, middlewareFileList] = await getFileList(controllersDir, middlewaresDir);
+	const [controllerFileList, middlewareFileList] = await getAllFileList(controllersDir, middlewaresDir);
 	const [controllers, middlewares] = await resolveFiles(controllerFileList, middlewareFileList);
 
 	const controllersFileStructure = await generateControllersFileStructure(controllerFileList);
