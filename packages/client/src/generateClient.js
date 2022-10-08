@@ -73,7 +73,7 @@ function generateClientFile(controllersStructure) {
 	file += 'return {';
 
 	for (const namespace in controllersStructure) {
-		file += `${namespace}: {`;
+		file += `'${namespace}': {`;
 		for (const functionName in controllersStructure[namespace]) {
 			file += generateControllerFunctionString(namespace, functionName);
 		}
