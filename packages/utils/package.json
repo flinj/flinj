@@ -1,0 +1,20 @@
+{
+	"name": "@flinj/utils",
+	"version": "1.0.4",
+	"description": "flinj utilities",
+	"main": "src/index.js",
+	"scripts": {},
+	"keywords": [],
+	"author": "LacheRo`",
+	"license": "MIT",
+	"type": "module",
+	"publishConfig": {
+		"access": "public"
+	},
+	"files": [
+		"src"
+	],
+	"dependencies": {
+		"fast-glob": "^3.2.12"
+	}
+}
