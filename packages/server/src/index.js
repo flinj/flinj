@@ -8,7 +8,7 @@ import AppError from './AppError.js';
 
 /**
  * @typedef {{ start: (port: number) => void, addMiddleware: (...middlewares: function[]) => CreateApp }} CreateApp
- * @typedef {import('../../../.flinj/route').Route[]} Routes
+ * @typedef {import('../../../../.flinj/route').Route[]} Routes
  * @typedef {(name: string, value: string, options: express.CookieOptions) => void} SetCookie
  * @typedef {(object: ObjectWithAnyStrings) => void} SetHeaders
  * @typedef {Object.<string, string>} ObjectWithAnyStrings
