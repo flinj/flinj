@@ -44,3 +44,7 @@ const user = await client.users.POST({
 	password: '123456',
 });
 ```
+
+## TODO
+
+- [ ] support multi request params
