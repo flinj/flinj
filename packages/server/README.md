@@ -97,3 +97,35 @@ export const use = ['auth/*'];
 
 - [ ] add tests
 - [ ] find a better way to generate routes
+- [ ] support unlimited dashed on function name
+- [ ] support nested folder strucutre for controllers i.e.
+
+```js
+// Route: POST /projects/:projectId/settings/duplicate
+
+// /projects.js
+export function POST_$projectId_settings_duplicate() {}
+
+// /projects/index.js
+export function POST_$projectId_settings_duplicate() {}
+
+// /projects/[projectId].js
+export function POST_settings_duplicate() {}
+
+// /projects/[projectId]/index.js
+export function POST_settings_duplicate() {}
+
+// /projects/[projectId]/settings.js
+export function POST_duplicate() {}
+
+// /projects/[projectId]/settings/index.js
+export function POST_duplicate() {}
+
+// /projects/[projectId]/settings/duplicate.js
+export function POST() {}
+
+// /projects/[projectId]/settings/duplicate/index.js
+export function POST() {}
+```
+
+I know there are so many ways to write 1 route, but I found it the most flexible and each one will decide to sort it the way that makes most sense for him. and will add a feature that warn if a route declared more than once
