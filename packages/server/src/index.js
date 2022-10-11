@@ -84,7 +84,7 @@ function createMiddlewaresMap(middlewares) {
 		if (!use?.length) return;
 		use.forEach(route => {
 			if (middlewaresMap.has(route)) {
-				middlewaresMap.get(route).push(middlewareWrapper(handler));
+				middlewaresMap.get(route).push(handler);
 			} else {
 				middlewaresMap.set(route, [handler]);
 			}
