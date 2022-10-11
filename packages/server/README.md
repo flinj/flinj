@@ -97,8 +97,9 @@ export const use = ['auth/*'];
 
 - [ ] add tests
 - [ ] find a better way to generate routes
-- [ ] support unlimited dashed on function name
-- [ ] support nested folder strucutre for controllers i.e.
+- [x] support unlimited dashed on function name
+- [x] support nested folder strucutre for controllers i.e.
+- [ ] add documentation to the new changes
 
 ```js
 // Route: POST /projects/:projectId/settings/duplicate
