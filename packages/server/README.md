@@ -93,13 +93,9 @@ export default async ctx => {
 export const use = ['auth/*'];
 ```
 
-## TOOD:
+### You can define a single route in all the ways mentioned below
 
-- [ ] add tests
-- [ ] find a better way to generate routes
-- [x] support unlimited dashed on function name
-- [x] support nested folder strucutre for controllers i.e.
-- [ ] add documentation to the new changes
+You can define as many route names/params as you want using the `underscore` symbol
 
 ```js
 // Route: POST /projects/:projectId/settings/duplicate
@@ -130,3 +126,12 @@ export function POST() {}
 ```
 
 I know there are so many ways to write 1 route, but I found it the most flexible and each one will decide to sort it the way that makes most sense for him. and will add a feature that warn if a route declared more than once
+
+## TOOD:
+
+- [ ] add tests
+- [ ] find a better way to generate routes
+- [x] support unlimited dashed on function name
+- [x] support nested folder strucutre for controllers i.e.
+- [x] add documentation to the new changes
+- [x] make the error message optional

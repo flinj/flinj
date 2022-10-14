@@ -2,7 +2,7 @@ export default class AppError extends Error {
 	/**
 	 *
 	 * @param {number} status - HTTP status code
-	 * @param {string} body - Error message
+	 * @param {string=} body - Error message
 	 */
 	constructor(status, body) {
 		super(body);

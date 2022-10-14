@@ -16,49 +16,36 @@ import AppError from './AppError.js';
  * @typedef {(ctx: { body: ObjectWithAnyValues, url: URL, params: ObjectWithAnyStrings, query: ObjectWithAnyStrings, cookies: ObjectWithAnyStrings, stuff: ObjectWithAnyValues, setCookie: SetCookie, setHeaders: SetHeaders }) => any} Controller
  */
 
-function getValue(object, key) {
-	const keyParts = key.split('.');
-
-	let value = object;
-	for (const key of keyParts) {
-		if (value === undefined || value === null) return;
-		value = value[key];
-	}
-
-	return value;
-}
-
 function getPath(...paths) {
 	const rootDir = process.cwd();
 	return paths.map(path => join(rootDir, path));
 }
 
-function parseRoutesObject(input, result = { '*': 'string' }, path) {
-	for (const key in input) {
-		const value = input[key];
-		if (value === null) {
-			result[`${path}/${key}`] = 'string';
-		} else if (typeof value === 'object') {
-			result[`${key}/*`] = 'string';
-			parseRoutesObject(value, result, key);
-		}
-	}
-
-	return result;
-}
-
 async function generateRouteType(input) {
-	const object = parseRoutesObject(input);
 	const hiddenFolder = './.flinj';
 	if (!(await isFolderExists(hiddenFolder))) {
 		await createFolder(hiddenFolder);
 	}
 
-	const unionType = Object.keys(object)
-		.map(item => `'${item}'`)
-		.join('|');
-	const data = `export type Route = ${unionType};`;
+	const keys = ["'*'"];
+	writeTypes(input);
+
+	const data = `export type Route = ${keys.join('|')};`;
 	await fs.writeFile(hiddenFolder + '/route.d.ts', data);
+
+	function writeTypes(input, path = []) {
+		for (const key in input) {
+			const value = input[key];
+			const currentPath = [...path];
+			if (typeof value === 'object') {
+				currentPath.push(key);
+				keys.push(`'${currentPath.join('/')}/*'`);
+				writeTypes(value, currentPath);
+			} else {
+				keys.push(`'${currentPath.join('/')}/${key}'`);
+			}
+		}
+	}
 }
 
 async function resolveFiles(...paths) {
@@ -206,6 +193,7 @@ function generateRoutes({ controllers, middlewares }) {
 	}
 }
 
+// TOOD: shift logic to utils
 async function generateControllersObject(fileList, controllersDir) {
 	const output = {};
 
@@ -264,6 +252,8 @@ export async function createApp(
 	const [middlewares] = await resolveFiles(middlewareFileList);
 	const controllers = await generateControllersObject(controllerFileList, controllersDir);
 
+	generateRouteType(controllers);
+
 	const routes = generateRoutes({ controllers, middlewares });
 	const app = express();
 
@@ -316,13 +306,19 @@ function globalErrorHandler(err, req, res, next) {
 		message = 'Something went wrong!';
 	}
 
-	return res.status(status).json({ message });
+	res.status(status);
+
+	if (message) {
+		res.json({ message });
+	} else {
+		res.send();
+	}
 }
 
 /**
  *
  * @param {number} status
- * @param {string} body
+ * @param {string=} body
  * @returns {AppError}
  */
 export function error(status, body) {
