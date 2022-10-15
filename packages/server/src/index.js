@@ -148,9 +148,7 @@ function generateRoutes({ controllers, middlewares }) {
 				writeRoutes(value, currentPath);
 			} else {
 				const [method, ...restFunctionName] = key.split('_');
-				console.log([...currentPath, ...restFunctionName]);
 				const route = generateRoutePath([...currentPath, ...restFunctionName]);
-				console.log(route);
 
 				const matchMiddlewareKeys = getMatchMiddlewareKeys();
 				const allMiddlewares = matchMiddlewareKeys.filter(key => middlewaresMap.has(key)).flatMap(key => middlewaresMap.get(key));
@@ -258,7 +256,6 @@ export async function createApp(
 	// TODO: refactor here, not need to await for both
 	const [middlewares] = await resolveFiles(middlewareFileList);
 	const controllers = await generateControllersObject(controllerFileList, controllersDir);
-	console.log(controllers);
 
 	generateRouteType(controllers);
 
