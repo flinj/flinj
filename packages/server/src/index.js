@@ -148,7 +148,9 @@ function generateRoutes({ controllers, middlewares }) {
 				writeRoutes(value, currentPath);
 			} else {
 				const [method, ...restFunctionName] = key.split('_');
+				console.log([...currentPath, ...restFunctionName]);
 				const route = generateRoutePath([...currentPath, ...restFunctionName]);
+				console.log(route);
 
 				const matchMiddlewareKeys = getMatchMiddlewareKeys();
 				const allMiddlewares = matchMiddlewareKeys.filter(key => middlewaresMap.has(key)).flatMap(key => middlewaresMap.get(key));
@@ -189,7 +191,12 @@ function generateRoutes({ controllers, middlewares }) {
 
 	/** @param {Array<string>} list */
 	function generateRoutePath(list) {
-		return '/' + list.map(str => str.replace('$', ':')).join('/');
+		const paths = [];
+		for (const str of list) {
+			if (!str) continue;
+			paths.push(str.replace('$', ':'));
+		}
+		return '/' + paths.join('/');
 	}
 }
 
@@ -251,6 +258,7 @@ export async function createApp(
 	// TODO: refactor here, not need to await for both
 	const [middlewares] = await resolveFiles(middlewareFileList);
 	const controllers = await generateControllersObject(controllerFileList, controllersDir);
+	console.log(controllers);
 
 	generateRouteType(controllers);
 
