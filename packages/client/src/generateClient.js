@@ -1,101 +1,16 @@
 #!/usr/bin/env node
 import path from 'path';
-import { fileURLToPath } from 'url';
 import fs from 'fs/promises';
-import { createFolder, generateControllersFileStructure, removeDir, getFileList } from '@flinj/utils';
-
-/** @param {string} name */
-function getDynamicArg(name) {
-	const index = name.indexOf('$');
-	if (index < 0) return;
-	return name.slice(index + 1);
-}
+import { createFolder, removeDir, getFileList } from '@flinj/utils';
 
 /**
  *
- * @param {string} namespace
- * @param {string} functionName
- * @returns {string}
- */
-function generateControllerFunctionString(namespace, functionName) {
-	const [method, name = ''] = functionName.split('_');
-
-	function generateArgs() {
-		const args = [];
-		const dynamicArg = getDynamicArg(name);
-
-		if (dynamicArg) {
-			args.push(dynamicArg);
-		}
-
-		const methodsWithData = ['POST', 'PUT', 'PATCH'];
-		if (methodsWithData.includes(method)) {
-			args.push('data');
-		}
-
-		args.push('config');
-		return args;
-	}
-
-	function generateBody() {
-		let output = '{';
-		output += `return instance.${method.toLocaleLowerCase()}(\`/${namespace}`;
-
-		const dynamicArg = getDynamicArg(name);
-
-		if (name) {
-			output += '/' + (dynamicArg ? `\${${dynamicArg}}` : name);
-		}
-		output += '`, ';
-
-		const args = generateArgs();
-		if (dynamicArg) {
-			args.splice(0, 1);
-		}
-
-		output += args.join(',');
-		output += ')},';
-
-		return output;
-	}
-
-	return `${functionName}` + `(${generateArgs().join(',')})` + generateBody();
-}
-
-/**
- *
- * @param {string} functionName
- * @returns {string}
- */
-function generateControllerFunctionDeclarationString(functionName) {
-	const [method, name = ''] = functionName.split('_');
-
-	function generateArgs() {
-		const args = [];
-		const dynamicArg = getDynamicArg(name);
-
-		if (dynamicArg) {
-			args.push(`${dynamicArg}: string | number`);
-		}
-
-		const methodsWithData = ['POST', 'PUT', 'PATCH'];
-		if (methodsWithData.includes(method)) {
-			args.push('data: { [key: string]: any }');
-		}
-
-		args.push('config?: AxiosRequestConfig');
-		return args;
-	}
-
-	return `${functionName}` + `(${generateArgs().join(',')}): Promise<unknown>;`;
-}
-
-/**
- *
- * @param {object} controllersStructure
+ * @param {object} controllers
  * @returns { file: string, declarationFile: string }
  */
-function generateClientFile(controllersStructure) {
+function generateClientFile(controllers) {
+	const methodsWithData = ['POST', 'PUT', 'PATCH'];
+
 	let file = `import axios from 'axios';`;
 	file += 'export function createClient(config){';
 	file += 'const instance = axios.create(config);';
@@ -104,21 +19,124 @@ function generateClientFile(controllersStructure) {
 	let declarationFile = `import type { CreateAxiosDefaults, AxiosRequestConfig } from 'axios';`;
 	declarationFile += 'declare function createClient(config?: CreateAxiosDefaults): { ';
 
-	for (const namespace in controllersStructure) {
-		file += `'${namespace}': {`;
-		declarationFile += `'${namespace}': {`;
-		for (const functionName in controllersStructure[namespace]) {
-			file += generateControllerFunctionString(namespace, functionName);
-			declarationFile += generateControllerFunctionDeclarationString(functionName);
+	write(controllers);
+	function write(input, path = []) {
+		for (const key in input) {
+			const value = input[key];
+
+			let currentPath = [...path];
+			if (value === null) {
+				const [method, ...restFunctionName] = key.split('_');
+				file += generateControllerFunctionString(key, method, [...currentPath, ...restFunctionName]);
+				declarationFile += generateControllerFunctionDeclarationString(key, method, [...currentPath, ...restFunctionName]);
+			} else {
+				file += `'${key}': {`;
+				declarationFile += `'${key}': {`;
+				currentPath.push(key);
+				write(value, currentPath);
+				file += '},';
+				declarationFile += '};';
+			}
 		}
-		declarationFile += `};`;
-		file += `},`;
 	}
 
 	declarationFile += `}`;
 	file += '}}';
 
 	return { file, declarationFile };
+
+	function generateControllerFunctionString(key, method, path) {
+		const route = generateRoutePath(path);
+		return `${key}(${generateArgs(true).join(',')}){ return instance.${method.toLocaleLowerCase()}(${route}, ${generateArgs().join(',')})},`;
+
+		function generateRoutePath(path) {
+			let output = '`/';
+			const mappedList = path.map(str => {
+				if (str.includes('$')) {
+					return '${' + str.slice(1) + '}';
+				}
+				return str;
+			});
+
+			output += mappedList.join('/');
+			output += '`';
+			return output;
+		}
+
+		function generateArgs(includeDynamicArgs) {
+			const args = [];
+
+			if (includeDynamicArgs) {
+				for (const item of path) {
+					if (!item.includes('$')) continue;
+					args.push(item.slice(1));
+				}
+			}
+
+			if (methodsWithData.includes(method)) {
+				args.push('data');
+			}
+
+			args.push('config');
+			return args;
+		}
+	}
+
+	function generateControllerFunctionDeclarationString(key, method, path) {
+		return `${key}(${generateArgs().join(',')}): Promise<unknown>;`;
+
+		function generateArgs() {
+			const args = [];
+
+			for (const item of path) {
+				if (!item.includes('$')) continue;
+				args.push(`${item.slice(1)}: string | number`);
+			}
+
+			if (methodsWithData.includes(method)) {
+				args.push('data: { [key: string]: any }');
+			}
+
+			args.push('config?: AxiosRequestConfig');
+			return args;
+		}
+	}
+}
+
+async function generateControllersObject(fileList, controllersDir) {
+	const output = {};
+
+	const promises = fileList.map(path => fs.readFile(path, 'utf-8'));
+
+	const resolvedFiles = await Promise.all(promises);
+
+	// TODO: support arrow function
+	const regex = /^export (?:async )?function ((?:GET|POST|PUT|PATCH|DELETE)(?:_[$\w]*)?)\([.\w$,[\]{}:=\s]*\)*\s*{/gm;
+	fileList.forEach((path, i) => {
+		const pathParts = getPathParts(path);
+		const scopedOutput = pathParts.reduce((acc, key) => (acc[key] = Object.assign(acc[key] ?? {})), output);
+
+		const raw = resolvedFiles[i];
+		let match;
+
+		while ((match = regex.exec(raw))) {
+			const functionName = match[1];
+			scopedOutput[functionName] = null;
+		}
+	});
+
+	return output;
+
+	/**
+	 *
+	 * @param {string} path
+	 * @returns {Array<string>}
+	 */
+	function getPathParts(path) {
+		let output = path.slice(controllersDir.length + 1, -3);
+		if (output.endsWith('index')) output = output.slice(0, -6);
+		return output.split('/');
+	}
 }
 
 /**
@@ -135,14 +153,18 @@ async function generate(backendControllersDir) {
 	await createFolder(hiddenFolder);
 
 	const controllersDir = path.resolve(process.cwd(), backendControllersDir);
-	const controllerFileList = await getFileList(`${controllersDir}/*.js`);
+	const [controllerFileList] = await getAllFileList(controllersDir);
 	// TODO: throw error if no controllers
 
-	const controllersStructure = await generateControllersFileStructure(controllerFileList);
-	const { file, declarationFile } = generateClientFile(controllersStructure);
+	const controllers = await generateControllersObject(controllerFileList, controllersDir);
+	const { file, declarationFile } = generateClientFile(controllers);
 
 	fs.writeFile(hiddenFolder + '/client.js', file);
 	fs.writeFile(hiddenFolder + '/client.d.ts', declarationFile);
+}
+
+async function getAllFileList(...paths) {
+	return Promise.all(paths.map(path => getFileList(path + '/**/*.js')));
 }
 
 generate(process.argv[2]);

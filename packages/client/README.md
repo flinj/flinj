@@ -47,5 +47,5 @@ const user = await client.users.POST({
 
 ## TODO
 
-- [ ] support multi request params
-- [ ] adjust to work with the new changes of @flinj/server
+- [x] support multi request params
+- [x] adjust to work with the new changes of @flinj/server
