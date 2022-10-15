@@ -106,22 +106,22 @@ export function POST_$projectId_settings_duplicate() {}
 // /projects/index.js
 export function POST_$projectId_settings_duplicate() {}
 
-// /projects/[projectId].js
+// /projects/$projectId.js
 export function POST_settings_duplicate() {}
 
-// /projects/[projectId]/index.js
+// /projects/$projectId/index.js
 export function POST_settings_duplicate() {}
 
-// /projects/[projectId]/settings.js
+// /projects/$projectId/settings.js
 export function POST_duplicate() {}
 
-// /projects/[projectId]/settings/index.js
+// /projects/$projectId/settings/index.js
 export function POST_duplicate() {}
 
-// /projects/[projectId]/settings/duplicate.js
+// /projects/$projectId/settings/duplicate.js
 export function POST() {}
 
-// /projects/[projectId]/settings/duplicate/index.js
+// /projects/$projectId/settings/duplicate/index.js
 export function POST() {}
 ```
 
